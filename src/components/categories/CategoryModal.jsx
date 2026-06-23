@@ -15,11 +15,16 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      return;
+    }
 
-    onSave(name);
+    onSave({
+      name: name,
+    });
 
     setName("");
+
     onClose();
   };
 
@@ -29,32 +34,21 @@ const CategoryModal = ({ isOpen, onClose, onSave, category }) => {
       onClose={onClose}
       title={category ? "Edit Category" : "Add Category"}
     >
-      <form onSubmit={handleSubmit}>
-        <label className="block mb-2 font-medium">Category Name</label>
-
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
+          placeholder="Category name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-5"
+          className="w-full border px-3 py-2 rounded-lg"
         />
 
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border rounded"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Save
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg"
+        >
+          Save
+        </button>
       </form>
     </Modal>
   );

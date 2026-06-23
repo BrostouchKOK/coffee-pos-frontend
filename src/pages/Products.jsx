@@ -2,6 +2,7 @@ import { useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import ProductTable from "../components/products/ProductTable";
 import ProductModal from "../components/products/ProductModal";
+import toast from "react-hot-toast";
 
 const Products = () => {
   const [products, setProducts] = useState([
@@ -25,7 +26,7 @@ const Products = () => {
       id: 3,
       name: "Cheesecake",
       category: "Dessert",
-      price: 4.0,
+      price: 4,
       stock: 15,
       image: "https://via.placeholder.com/80",
     },
@@ -33,21 +34,25 @@ const Products = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const categories = ["Coffee", "Tea", "Dessert"];
 
+  // Add Product
   const handleAdd = () => {
     setSelectedProduct(null);
     setIsOpen(true);
   };
 
+  // Edit Product
   const handleEdit = (product) => {
     setSelectedProduct(product);
     setIsOpen(true);
   };
 
+  // Save Product
   const handleSave = (productData) => {
     if (selectedProduct) {
       setProducts(
@@ -60,6 +65,8 @@ const Products = () => {
             : product,
         ),
       );
+
+      toast.success("Product updated successfully!");
     } else {
       setProducts([
         ...products,
@@ -68,13 +75,47 @@ const Products = () => {
           ...productData,
         },
       ]);
+
+      toast.success("Product added successfully!");
     }
+
+    setIsOpen(false);
   };
 
+  // Delete Product
   const handleDelete = (id) => {
-    if (window.confirm("Delete this product?")) {
-      setProducts(products.filter((product) => product.id !== id));
-    }
+    toast.custom(
+      (t) => (
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <p className="font-semibold mb-3">Delete this product?</p>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setProducts(products.filter((product) => product.id !== id));
+
+                toast.dismiss(t.id);
+
+                toast.success("Product deleted successfully!");
+              }}
+              className="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Yes
+            </button>
+
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-300 px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+      },
+    );
   };
 
   const filteredProducts = products.filter((product) => {
@@ -95,7 +136,6 @@ const Products = () => {
 
   return (
     <MainLayout>
-      {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-2xl font-bold">Products</h1>
 
@@ -107,7 +147,6 @@ const Products = () => {
         </button>
       </div>
 
-      {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-5">
         <input
           type="text"
@@ -133,20 +172,18 @@ const Products = () => {
 
         <button
           onClick={clearFilters}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+          className="px-4 py-2 bg-gray-200 rounded-lg"
         >
           Clear
         </button>
       </div>
 
-      {/* Product Table */}
       <ProductTable
         products={filteredProducts}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
 
-      {/* Product Modal */}
       <ProductModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}

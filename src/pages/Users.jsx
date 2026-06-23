@@ -2,6 +2,7 @@ import { useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import UserTable from "../components/users/UserTable";
 import UserModal from "../components/users/UserModal";
+import toast from "react-hot-toast";
 
 const Users = () => {
   const [users, setUsers] = useState([
@@ -19,7 +20,11 @@ const Users = () => {
     },
   ]);
 
+  const roles = ["Admin", "Cashier"];
+
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [selectedRole, setSelectedRole] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -27,11 +32,13 @@ const Users = () => {
 
   const handleAdd = () => {
     setSelectedUser(null);
+
     setIsOpen(true);
   };
 
   const handleEdit = (user) => {
     setSelectedUser(user);
+
     setIsOpen(true);
   };
 
@@ -47,28 +54,77 @@ const Users = () => {
             : user,
         ),
       );
+
+      toast.success("User updated successfully!");
     } else {
       setUsers([
         ...users,
+
         {
           id: Date.now(),
           ...userData,
         },
       ]);
+
+      toast.success("User added successfully!");
     }
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Delete this user?")) {
-      setUsers(users.filter((user) => user.id !== id));
-    }
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p>Delete this user?</p>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setUsers(users.filter((user) => user.id !== id));
+
+                toast.dismiss(t.id);
+
+                toast.success("User deleted successfully!");
+              }}
+              className="bg-red-600 text-white px-3 py-1 rounded"
+            >
+              Delete
+            </button>
+
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-400 text-white px-3 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+
+      {
+        duration: Infinity,
+      },
+    );
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Search + Role Filter
+
+  const filteredUsers = users.filter((user) => {
+    const matchSearch =
+      user.username
+
+        .toLowerCase()
+
+        .includes(searchTerm.toLowerCase()) ||
+      user.email
+
+        .toLowerCase()
+
+        .includes(searchTerm.toLowerCase());
+
+    const matchRole = selectedRole === "" || user.role === selectedRole;
+
+    return matchSearch && matchRole;
+  });
 
   return (
     <MainLayout>
@@ -83,7 +139,9 @@ const Users = () => {
         </button>
       </div>
 
-      <div className="mb-5">
+      {/* Search + Filter */}
+
+      <div className="flex flex-col md:flex-row gap-3 mb-5">
         <input
           type="text"
           placeholder="Search user..."
@@ -91,6 +149,20 @@ const Users = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full md:w-80 px-4 py-2 border rounded-lg"
         />
+
+        <select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="px-4 py-2 border rounded-lg"
+        >
+          <option value="">All Roles</option>
+
+          {roles.map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
+        </select>
       </div>
 
       <UserTable
@@ -104,6 +176,7 @@ const Users = () => {
         onClose={() => setIsOpen(false)}
         onSave={handleSave}
         user={selectedUser}
+        roles={roles}
       />
     </MainLayout>
   );

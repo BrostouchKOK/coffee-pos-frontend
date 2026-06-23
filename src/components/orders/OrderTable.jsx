@@ -1,4 +1,4 @@
-const OrderTable = ({ orders, onView }) => {
+const OrderTable = ({ orders, onView, onUpdateStatus }) => {
   return (
     <div className="bg-white rounded-xl shadow overflow-x-auto">
       <table className="w-full">
@@ -14,7 +14,7 @@ const OrderTable = ({ orders, onView }) => {
 
             <th className="p-4 text-left">Status</th>
 
-            <th className="p-4 text-center">Action</th>
+            <th className="p-4 text-center">Actions</th>
           </tr>
         </thead>
 
@@ -27,12 +27,20 @@ const OrderTable = ({ orders, onView }) => {
 
               <td className="p-4">{order.date}</td>
 
-              <td className="p-4">${order.total}</td>
+              <td className="p-4">${order.total.toFixed(2)}</td>
 
               <td className="p-4">
-                <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
-                  {order.status}
-                </span>
+                <select
+                  value={order.status}
+                  onChange={(e) => onUpdateStatus(order.id, e.target.value)}
+                  className="border rounded px-2 py-1"
+                >
+                  <option value="Pending">Pending</option>
+
+                  <option value="Completed">Completed</option>
+
+                  <option value="Cancelled">Cancelled</option>
+                </select>
               </td>
 
               <td className="p-4 text-center">
@@ -47,6 +55,10 @@ const OrderTable = ({ orders, onView }) => {
           ))}
         </tbody>
       </table>
+
+      {orders.length === 0 && (
+        <div className="text-center py-10 text-gray-500">No orders found</div>
+      )}
     </div>
   );
 };
