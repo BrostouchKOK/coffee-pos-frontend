@@ -15,7 +15,7 @@ const Sidebar = () => {
   const menuItems = [
     {
       name: "Dashboard",
-      path: "/dashboard",
+      path: "/",
       icon: <FaTachometerAlt />,
     },
     {

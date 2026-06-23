@@ -2,6 +2,7 @@ import { useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import ProductCard from "../components/pos/ProductCard";
 import Cart from "../components/pos/Cart";
+import ReceiptModal from "../components/receipt/ReceiptModal";
 
 const POS = () => {
   const [products] = useState([
@@ -38,6 +39,7 @@ const POS = () => {
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const addToCart = (product) => {
     const exists = cart.find((item) => item.id === product.id);
@@ -45,12 +47,7 @@ const POS = () => {
     if (exists) {
       setCart(
         cart.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                qty: item.qty + 1,
-              }
-            : item,
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item,
         ),
       );
     } else {
@@ -67,12 +64,7 @@ const POS = () => {
   const increaseQty = (id) => {
     setCart(
       cart.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              qty: item.qty + 1,
-            }
-          : item,
+        item.id === id ? { ...item, qty: item.qty + 1 } : item,
       ),
     );
   };
@@ -80,14 +72,7 @@ const POS = () => {
   const decreaseQty = (id) => {
     setCart(
       cart
-        .map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                qty: item.qty - 1,
-              }
-            : item,
-        )
+        .map((item) => (item.id === id ? { ...item, qty: item.qty - 1 } : item))
         .filter((item) => item.qty > 0),
     );
   };
@@ -114,7 +99,7 @@ const POS = () => {
           <div className="flex flex-col md:flex-row gap-3 mb-5">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border rounded-lg px-4 py-2 flex-1"
@@ -150,9 +135,17 @@ const POS = () => {
             increaseQty={increaseQty}
             decreaseQty={decreaseQty}
             removeItem={removeItem}
+            onCheckout={() => setShowReceipt(true)}
           />
         </div>
       </div>
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        isOpen={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        cart={cart}
+      />
     </MainLayout>
   );
 };
