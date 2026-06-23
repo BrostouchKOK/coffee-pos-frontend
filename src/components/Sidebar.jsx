@@ -7,6 +7,8 @@ import {
   FaCashRegister,
   FaShoppingCart,
   FaUsers,
+  FaChartBar,
+  FaCog,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -40,6 +42,16 @@ const Sidebar = () => {
       name: "Users",
       path: "/users",
       icon: <FaUsers />,
+    },
+    {
+      name: "Reports",
+      path: "/reports",
+      icon: <FaChartBar />,
+    },
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: <FaCog />,
     },
   ];
   return (
