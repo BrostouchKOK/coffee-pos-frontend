@@ -11,9 +11,11 @@ import {
   FaCog,
   FaTimes,
 } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
-  const menuItems = [
+  const { user } = useAuth();
+  const adminMenus = [
     {
       name: "Dashboard",
       path: "/",
@@ -55,6 +57,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       icon: <FaCog />,
     },
   ];
+
+  const cashierMenus = [
+    {
+      name: "POS",
+      path: "/pos",
+      icon: <FaCashRegister />,
+    },
+    {
+      name: "Orders",
+      path: "/orders",
+      icon: <FaShoppingCart />,
+    },
+  ];
+
+  const menuItems = user?.role === "Admin" ? adminMenus : cashierMenus;
+
+  // need to update menuItem
 
   return (
     <>

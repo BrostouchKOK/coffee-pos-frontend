@@ -8,23 +8,90 @@ import Orders from "../pages/Orders";
 import Users from "../pages/Users";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import Login from "../pages/Login";
+
+import ProtectedRoute from "../layouts/ProtectedRoute";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        {/* Public Route */}
+        <Route path="/login" element={<Login />} />
 
-        <Route path="/pos" element={<POS />} />
-        <Route path="/orders" element={<Orders />} />
+        {/* Admin Only */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/products" element={<Products />} />
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/users" element={<Users />} />
-        <Route path="/reports" element={<Reports />} />
-        
-        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/categories"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Categories />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin + Cashier */}
+        <Route
+          path="/pos"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <POS />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
