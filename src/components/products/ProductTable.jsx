@@ -18,9 +18,9 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
             <tr key={product.id} className="border-b">
               <td className="p-4">
                 <img
-                  src={product.image}
+                  src={product.image || "https://via.placeholder.com/80"}
                   alt={product.name}
-                  className="w-14 h-14 rounded object-cover"
+                  className="w-16 h-16 rounded object-cover"
                 />
               </td>
 
