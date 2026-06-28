@@ -1,21 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import CategoryTable from "../components/categories/CategoryTable";
 import CategoryModal from "../components/categories/CategoryModal";
 import toast from "react-hot-toast";
 
+import {
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../api/categoryApi";
+
 const Categories = () => {
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Coffee" },
-    { id: 2, name: "Tea" },
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [isOpen, setIsOpen] = useState(false);
-
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // search state
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getCategories();
+
+      setCategories(res.data.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load categories");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     setSelectedCategory(null);
@@ -27,30 +48,23 @@ const Categories = () => {
     setIsOpen(true);
   };
 
-  const handleSave = (categoryData) => {
-    if (selectedCategory) {
-      setCategories(
-        categories.map((category) =>
-          category.id === selectedCategory.id
-            ? {
-                ...category,
-                ...categoryData,
-              }
-            : category,
-        ),
-      );
+  const handleSave = async (categoryData) => {
+    try {
+      if (selectedCategory) {
+        await updateCategory(selectedCategory._id, categoryData);
 
-      toast.success("Category updated successfully!");
-    } else {
-      setCategories([
-        ...categories,
-        {
-          id: Date.now(),
-          ...categoryData,
-        },
-      ]);
+        toast.success("Category updated successfully!");
+      } else {
+        await createCategory(categoryData);
 
-      toast.success("Category added successfully!");
+        toast.success("Category added successfully!");
+      }
+
+      await fetchCategories();
+
+      setIsOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Operation failed");
     }
   };
 
@@ -62,23 +76,27 @@ const Categories = () => {
 
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                setCategories(
-                  categories.filter((category) => category.id !== id),
-                );
-
-                toast.dismiss(t.id);
-
-                toast.success("Category deleted successfully!");
-              }}
               className="bg-red-600 text-white px-3 py-1 rounded"
+              onClick={async () => {
+                try {
+                  await deleteCategory(id);
+
+                  toast.dismiss(t.id);
+
+                  toast.success("Category deleted successfully!");
+
+                  await fetchCategories();
+                } catch (error) {
+                  toast.error(error.response?.data?.message || "Delete failed");
+                }
+              }}
             >
               Delete
             </button>
 
             <button
+              className="bg-gray-500 text-white px-3 py-1 rounded"
               onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-400 text-white px-3 py-1 rounded"
             >
               Cancel
             </button>
@@ -91,10 +109,19 @@ const Categories = () => {
     );
   };
 
-  // filter search
   const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[70vh]">
+          <p className="text-lg font-semibold">Loading Categories...</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -103,20 +130,19 @@ const Categories = () => {
 
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
         >
           + Add Category
         </button>
       </div>
 
-      {/* Search */}
       <div className="mb-5">
         <input
           type="text"
-          placeholder="Search category..."
+          placeholder="Search category by name"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-80 border px-4 py-2 rounded-lg"
+          className="w-full md:w-80 border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 

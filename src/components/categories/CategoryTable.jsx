@@ -1,11 +1,6 @@
 const CategoryTable = ({ categories, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-lg shadow">
-      <input
-        type="text"
-        placeholder="Search category..."
-        className="w-full mb-4 px-4 py-2 border rounded-lg"
-      />
       <table className="w-full">
         <thead>
           <tr className="border-b">
@@ -19,8 +14,8 @@ const CategoryTable = ({ categories, onEdit, onDelete }) => {
 
         <tbody>
           {categories.map((category) => (
-            <tr key={category.id} className="border-b">
-              <td className="p-4">{category.id}</td>
+            <tr key={category._id} className="border-b">
+              <td className="p-4">{category._id.slice(-6)}</td>
 
               <td className="p-4">{category.name}</td>
 
@@ -33,7 +28,7 @@ const CategoryTable = ({ categories, onEdit, onDelete }) => {
                 </button>
 
                 <button
-                  onClick={() => onDelete(category.id)}
+                  onClick={() => onDelete(category._id)}
                   className="bg-red-600 text-white px-3 py-1 rounded"
                 >
                   Delete
