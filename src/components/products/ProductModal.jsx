@@ -16,11 +16,18 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
     if (product) {
       setFormData({
         name: product.name || "",
+
         category: product.category?._id || product.category || "",
+
         price: product.price || "",
+
         stock: product.stock || "",
+
         image: null,
-        imagePreview: product.image || "",
+
+        imagePreview: product.image
+          ? `${import.meta.env.VITE_SERVER_URL}/uploads/products/${product.image}`
+          : "",
       });
     } else {
       setFormData({
@@ -37,6 +44,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
+
       [e.target.name]: e.target.value,
     }));
   };
@@ -48,7 +56,9 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
 
     setFormData((prev) => ({
       ...prev,
+
       image: file,
+
       imagePreview: URL.createObjectURL(file),
     }));
   };
@@ -63,14 +73,18 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
       !formData.stock
     ) {
       toast.error("Please fill all fields");
+
       return;
     }
 
     const data = new FormData();
 
     data.append("name", formData.name);
+
     data.append("category", formData.category);
+
     data.append("price", formData.price);
+
     data.append("stock", formData.stock);
 
     if (formData.image) {
@@ -87,23 +101,20 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
       title={product ? "Edit Product" : "Add Product"}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Image Upload */}
         <div className="flex flex-col items-center">
-          <div className="relative">
-            {formData.imagePreview ? (
-              <img
-                src={formData.imagePreview}
-                alt="Preview"
-                className="w-32 h-32 rounded-2xl object-cover border-2 border-gray-200 shadow-sm"
-              />
-            ) : (
-              <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50">
-                No Image
-              </div>
-            )}
-          </div>
+          {formData.imagePreview ? (
+            <img
+              src={formData.imagePreview}
+              alt="preview"
+              className="w-32 h-32 rounded-2xl object-cover border shadow"
+            />
+          ) : (
+            <div className="w-32 h-32 rounded-2xl border flex items-center justify-center text-gray-400">
+              No Image
+            </div>
+          )}
 
-          <label className="mt-3 cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+          <label className="mt-3 cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-lg">
             Choose Image
             <input
               type="file"
@@ -114,92 +125,74 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
           </label>
         </div>
 
-        {/* Product Information */}
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Name */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Product Name
-            </label>
+            <label>Product Name</label>
 
             <input
-              type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter product name"
-              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border rounded-xl"
             />
           </div>
 
-          {/* Category */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Category
-            </label>
+            <label>Category</label>
 
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border rounded-xl"
             >
               <option value="">Select Category</option>
 
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Price */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Price ($)
-            </label>
+            <label>Price</label>
 
             <input
               type="number"
               name="price"
               value={formData.price}
               onChange={handleChange}
-              placeholder="0.00"
-              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border rounded-xl"
             />
           </div>
 
-          {/* Stock */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Stock Quantity
-            </label>
+            <label>Stock</label>
 
             <input
               type="number"
               name="stock"
               value={formData.stock}
               onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border rounded-xl"
             />
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 pt-3">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
+            className="px-5 py-2 border rounded-xl"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+            className="px-6 py-2 bg-blue-600 text-white rounded-xl"
           >
             {product ? "Update Product" : "Add Product"}
           </button>
