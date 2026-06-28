@@ -1,22 +1,51 @@
 import { useState } from "react";
 import { FaCoffee, FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const loginAdmin = () => {
-    login("Admin");
-    navigate("/");
+  const { login } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const loginCashier = () => {
-    login("Cashier");
-    navigate("/pos");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const user = await login(formData.username, formData.password);
+
+      toast.success("Login successful!");
+
+      if (user.role === "Admin") {
+        navigate("/");
+      } else {
+        navigate("/pos");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,8 +58,7 @@ const Login = () => {
           <h1 className="text-5xl font-bold mb-4">Coffee POS</h1>
 
           <p className="text-lg opacity-90 max-w-md">
-            Manage products, orders, sales, and staff efficiently with your
-            modern coffee shop management system.
+            Manage products, orders, sales and staff efficiently.
           </p>
         </div>
       </div>
@@ -46,74 +74,53 @@ const Login = () => {
             <p className="text-gray-500 mt-2">Sign in to continue</p>
           </div>
 
-          {/* Username */}
-          <div className="relative mb-4">
-            <FaUser className="absolute left-4 top-4 text-gray-400" />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
 
-            <input
-              type="text"
-              placeholder="Username"
-              className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
-            />
-          </div>
+            <div className="relative">
+              <FaUser className="absolute left-4 top-4 text-gray-400" />
 
-          {/* Password */}
-          <div className="relative mb-4">
-            <FaLock className="absolute left-4 top-4 text-gray-400" />
+              <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+              />
+            </div>
 
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="w-full pl-11 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
-            />
+            {/* Password */}
+
+            <div className="relative">
+              <FaLock className="absolute left-4 top-4 text-gray-400" />
+
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-11 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-4"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
 
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-4 text-gray-500"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-60"
             >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
+              {loading ? "Signing In..." : "Login"}
             </button>
-          </div>
-
-          {/* Remember */}
-          <div className="flex justify-between items-center mb-6">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" />
-              Remember me
-            </label>
-
-            <button
-              type="button"
-              className="text-sm text-amber-600 hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-
-          {/* Demo Login Buttons */}
-          <button
-            onClick={loginAdmin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold mb-3 transition"
-          >
-            Login as Admin
-          </button>
-
-          <button
-            onClick={loginCashier}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition"
-          >
-            Login as Cashier
-          </button>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 text-center text-sm text-gray-500">
-            Demo Accounts
-            <br />
-            Admin
-            <br />
-            Cashier
-          </div>
+          </form>
         </div>
       </div>
     </div>

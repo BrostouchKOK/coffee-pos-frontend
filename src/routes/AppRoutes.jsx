@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Dashboard from "../pages/Dashboard";
 import Categories from "../pages/Categories";
@@ -10,16 +10,35 @@ import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
 import Login from "../pages/Login";
 
-import ProtectedRoute from "../layouts/ProtectedRoute";
+import ProtectedRoute from "./ProtectedRoute";
+import { useAuth } from "../context/AuthContext";
+
+const LoginRoute = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <h2 className="text-xl font-semibold">Loading...</h2>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to={user.role === "Admin" ? "/" : "/pos"} replace />;
+  }
+
+  return <Login />;
+};
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={<Login />} />
+        {/* Login */}
+        <Route path="/login" element={<LoginRoute />} />
 
-        {/* Admin Only */}
+        {/* Dashboard */}
         <Route
           path="/"
           element={
@@ -29,6 +48,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Products */}
         <Route
           path="/products"
           element={
@@ -38,6 +58,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Categories */}
         <Route
           path="/categories"
           element={
@@ -47,6 +68,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Users */}
         <Route
           path="/users"
           element={
@@ -56,6 +78,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Reports */}
         <Route
           path="/reports"
           element={
@@ -65,6 +88,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Settings */}
         <Route
           path="/settings"
           element={
@@ -74,7 +98,7 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Admin + Cashier */}
+        {/* POS */}
         <Route
           path="/pos"
           element={
@@ -84,6 +108,7 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Orders */}
         <Route
           path="/orders"
           element={
@@ -92,6 +117,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

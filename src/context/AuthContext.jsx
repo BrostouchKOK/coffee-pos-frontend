@@ -1,15 +1,47 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { loginUser } from "../api/authApi";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const login = (role) => {
-    setUser({ role });
+  const [loading, setLoading] = useState(true);
+
+  // Restore Login
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+
+    setLoading(false);
+  }, []);
+
+  // Login
+  const login = async (username, password) => {
+    const response = await loginUser({
+      username,
+      password,
+    });
+
+    const { user, token } = response.data.data;
+
+    localStorage.setItem("token", token);
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    setUser(user);
+
+    return user;
   };
 
+  // Logout
   const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
     setUser(null);
   };
 
@@ -17,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        loading,
         login,
         logout,
       }}
