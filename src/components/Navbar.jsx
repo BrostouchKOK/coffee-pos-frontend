@@ -7,11 +7,22 @@ import {
   FaKey,
   FaSignOutAlt,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = ({ setSidebarOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const dropdownRef = useRef();
+
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+
+    navigate("/login");
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -78,7 +89,7 @@ const Navbar = ({ setSidebarOpen }) => {
                 Change Password
               </button>
 
-              <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left">
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left">
                 <FaSignOutAlt />
                 Logout
               </button>
