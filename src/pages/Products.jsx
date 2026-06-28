@@ -1,36 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import ProductTable from "../components/products/ProductTable";
 import ProductModal from "../components/products/ProductModal";
 import toast from "react-hot-toast";
+import { getCategories } from "../api/categoryApi";
+import {
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../api/productApi";
 
 const Products = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Latte",
-      category: "Coffee",
-      price: 3.5,
-      stock: 50,
-      image: "https://via.placeholder.com/80",
-    },
-    {
-      id: 2,
-      name: "Green Tea",
-      category: "Tea",
-      price: 2.5,
-      stock: 30,
-      image: "https://via.placeholder.com/80",
-    },
-    {
-      id: 3,
-      name: "Cheesecake",
-      category: "Dessert",
-      price: 4,
-      stock: 15,
-      image: "https://via.placeholder.com/80",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -38,7 +21,36 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const categories = ["Coffee", "Tea", "Dessert"];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getProducts();
+
+      setProducts(res.data.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await getCategories();
+
+      setCategories(res.data.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load categories");
+    }
+  };
 
   // Add Product
   const handleAdd = () => {
@@ -53,33 +65,25 @@ const Products = () => {
   };
 
   // Save Product
-  const handleSave = (productData) => {
-    if (selectedProduct) {
-      setProducts(
-        products.map((product) =>
-          product.id === selectedProduct.id
-            ? {
-                ...product,
-                ...productData,
-              }
-            : product,
-        ),
-      );
+  const handleSave = async (productData) => {
+    try {
+      if (selectedProduct) {
+        await updateProduct(selectedProduct._id, productData);
 
-      toast.success("Product updated successfully!");
-    } else {
-      setProducts([
-        ...products,
-        {
-          id: Date.now(),
-          ...productData,
-        },
-      ]);
+        toast.success("Product updated successfully!");
+      } else {
+        await createProduct(productData);
 
-      toast.success("Product added successfully!");
+        toast.success("Product added successfully!");
+      }
+
+      await fetchProducts();
+
+      setIsOpen(false);
+      setSelectedProduct(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Operation failed");
     }
-
-    setIsOpen(false);
   };
 
   // Delete Product
@@ -91,21 +95,27 @@ const Products = () => {
 
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                setProducts(products.filter((product) => product.id !== id));
-
-                toast.dismiss(t.id);
-
-                toast.success("Product deleted successfully!");
-              }}
               className="bg-red-500 text-white px-4 py-2 rounded"
+              onClick={async () => {
+                try {
+                  await deleteProduct(id);
+
+                  toast.dismiss(t.id);
+
+                  toast.success("Product deleted successfully!");
+
+                  await fetchProducts();
+                } catch (error) {
+                  toast.error(error.response?.data?.message || "Delete failed");
+                }
+              }}
             >
-              Yes
+              Delete
             </button>
 
             <button
-              onClick={() => toast.dismiss(t.id)}
               className="bg-gray-300 px-4 py-2 rounded"
+              onClick={() => toast.dismiss(t.id)}
             >
               Cancel
             </button>
@@ -124,7 +134,7 @@ const Products = () => {
       .includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "" || product.category === selectedCategory;
+      selectedCategory === "" || product.category._id === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -133,6 +143,15 @@ const Products = () => {
     setSearchTerm("");
     setSelectedCategory("");
   };
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-96">
+          <p className="text-lg">Loading products...</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -164,8 +183,8 @@ const Products = () => {
           <option value="">All Categories</option>
 
           {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
+            <option key={category._id} value={category._id}>
+              {category.name}
             </option>
           ))}
         </select>

@@ -20,19 +20,21 @@ const OrderTable = ({ orders, onView, onUpdateStatus }) => {
 
         <tbody>
           {orders.map((order) => (
-            <tr key={order.id} className="border-b">
-              <td className="p-4">{order.id}</td>
+            <tr key={order._id} className="border-b">
+              <td className="p-4">#{order._id.slice(-6)}</td>
 
-              <td className="p-4">{order.customer}</td>
+              <td className="p-4">{order.customerName}</td>
 
-              <td className="p-4">{order.date}</td>
+              <td className="p-4">
+                {new Date(order.createdAt).toLocaleDateString()}
+              </td>
 
-              <td className="p-4">${order.total.toFixed(2)}</td>
+              <td className="p-4">${order.totalAmount.toFixed(2)}</td>
 
               <td className="p-4">
                 <select
                   value={order.status}
-                  onChange={(e) => onUpdateStatus(order.id, e.target.value)}
+                  onChange={(e) => onUpdateStatus(order._id, e.target.value)}
                   className="border rounded px-2 py-1"
                 >
                   <option value="Pending">Pending</option>

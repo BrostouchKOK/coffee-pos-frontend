@@ -8,28 +8,37 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
     category: "",
     price: "",
     stock: "",
-    image: "",
+    image: null,
+    imagePreview: "",
   });
 
   useEffect(() => {
     if (product) {
-      setFormData(product);
+      setFormData({
+        name: product.name || "",
+        category: product.category?._id || product.category || "",
+        price: product.price || "",
+        stock: product.stock || "",
+        image: null,
+        imagePreview: product.image || "",
+      });
     } else {
       setFormData({
         name: "",
         category: "",
         price: "",
         stock: "",
-        image: "",
+        image: null,
+        imagePreview: "",
       });
     }
   }, [product]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -37,16 +46,11 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
 
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      setFormData({
-        ...formData,
-        image: reader.result,
-      });
-    };
-
-    reader.readAsDataURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      image: file,
+      imagePreview: URL.createObjectURL(file),
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -62,9 +66,18 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
       return;
     }
 
-    onSave(formData);
+    const data = new FormData();
 
-    onClose();
+    data.append("name", formData.name);
+    data.append("category", formData.category);
+    data.append("price", formData.price);
+    data.append("stock", formData.stock);
+
+    if (formData.image) {
+      data.append("image", formData.image);
+    }
+
+    onSave(data);
   };
 
   return (
@@ -75,12 +88,11 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Image Upload */}
-
         <div className="flex flex-col items-center">
           <div className="relative">
-            {formData.image ? (
+            {formData.imagePreview ? (
               <img
-                src={formData.image}
+                src={formData.imagePreview}
                 alt="Preview"
                 className="w-32 h-32 rounded-2xl object-cover border-2 border-gray-200 shadow-sm"
               />
@@ -102,10 +114,9 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
           </label>
         </div>
 
-        {/* Product Info */}
-
+        {/* Product Information */}
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Product Name */}
+          {/* Name */}
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
               Product Name
@@ -136,8 +147,8 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
               <option value="">Select Category</option>
 
               {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+                <option key={category._id} value={category._id}>
+                  {category.name}
                 </option>
               ))}
             </select>
@@ -177,7 +188,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product, categories }) => {
         </div>
 
         {/* Buttons */}
-
         <div className="flex justify-end gap-3 pt-3">
           <button
             type="button"

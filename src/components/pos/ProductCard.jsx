@@ -1,8 +1,15 @@
 const ProductCard = ({ product, onAdd }) => {
+  const imageUrl = product.image
+    ? `${import.meta.env.VITE_API_URL.replace(
+        "/api",
+        ""
+      )}/uploads/products/${product.image}`
+    : "https://via.placeholder.com/150";
+
   return (
     <div className="bg-white rounded-xl shadow p-4">
       <img
-        src={product.image}
+        src={imageUrl}
         alt={product.name}
         className="w-full h-32 object-cover rounded-lg"
       />
@@ -12,11 +19,11 @@ const ProductCard = ({ product, onAdd }) => {
       </h3>
 
       <p className="text-gray-500 text-sm">
-        {product.category}
+        {product.category?.name}
       </p>
 
       <p className="font-bold mt-2">
-        ${product.price}
+        ${Number(product.price).toFixed(2)}
       </p>
 
       <button

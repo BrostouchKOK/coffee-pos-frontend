@@ -4,15 +4,20 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
   if (!order) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Order ${order.id}`}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Order #${order._id.slice(-6)}`}
+    >
       <div className="space-y-4">
         <div>
           <p>
-            <strong>Customer:</strong> {order.customer}
+            <strong>Customer:</strong> {order.customerName}
           </p>
 
           <p>
-            <strong>Date:</strong> {order.date}
+            <strong>Date:</strong>{" "}
+            {new Date(order.createdAt).toLocaleDateString()}
           </p>
 
           <p>
@@ -26,16 +31,16 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
           {order.items.map((item, index) => (
             <div key={index} className="flex justify-between border-b py-2">
               <span>
-                {item.name} × {item.qty}
+                {item.name}×{item.quantity}
               </span>
 
-              <span>${(item.price * item.qty).toFixed(2)}</span>
+              <span>${item.subtotal.toFixed(2)}</span>
             </div>
           ))}
         </div>
 
         <div className="text-right text-xl font-bold">
-          Total: ${order.total.toFixed(2)}
+          Total: ${order.totalAmount.toFixed(2)}
         </div>
       </div>
     </Modal>

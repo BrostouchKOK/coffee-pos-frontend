@@ -1,48 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import OrderTable from "../components/orders/OrderTable";
 import OrderDetailModal from "../components/orders/OrderDetailModal";
 import toast from "react-hot-toast";
 
+import { getOrders, updateOrderStatus } from "../api/orderApi";
+
 const Orders = () => {
-  const [orders, setOrders] = useState([
-    {
-      id: "#1001",
-      customer: "Walk-in Customer",
-      total: 15.5,
-      status: "Completed",
-      date: "2026-07-23",
-
-      items: [
-        {
-          name: "Latte",
-          qty: 2,
-          price: 3.5,
-        },
-        {
-          name: "Cheesecake",
-          qty: 1,
-          price: 8.5,
-        },
-      ],
-    },
-
-    {
-      id: "#1002",
-      customer: "John Doe",
-      total: 12,
-      status: "Pending",
-      date: "2026-07-23",
-
-      items: [
-        {
-          name: "Mocha",
-          qty: 2,
-          price: 6,
-        },
-      ],
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
 
   const statuses = ["Pending", "Completed", "Cancelled"];
 
@@ -52,39 +17,54 @@ const Orders = () => {
 
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const updateStatus = (id, status) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === id
-          ? {
-              ...order,
-              status,
-            }
-          : order,
-      ),
-    );
+  // =========================
+  // Fetch Orders
+  // =========================
 
-    toast.success("Order status updated!");
+  const fetchOrders = async () => {
+    try {
+      const res = await getOrders({
+        search: searchTerm,
+
+        status: selectedStatus,
+      });
+
+      setOrders(res.data.data);
+    } catch (error) {
+      toast.error("Cannot load orders");
+    }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchSearch =
-      order.id
+  useEffect(() => {
+    fetchOrders();
+  }, [searchTerm, selectedStatus]);
 
-        .toLowerCase()
+  // =========================
+  // Update Status
+  // =========================
 
-        .includes(searchTerm.toLowerCase()) ||
-      order.customer
+  const updateStatus = async (id, status) => {
+    try {
+      const res = await updateOrderStatus(id, status);
 
-        .toLowerCase()
+      setOrders(
+        orders.map((order) =>
+          order._id === id
+            ? {
+                ...order,
+                status: res.data.data.status,
+              }
+            : order,
+        ),
+      );
 
-        .includes(searchTerm.toLowerCase());
+      toast.success("Order status updated!");
+    } catch (error) {
+      console.log(error.response);
 
-    const matchStatus =
-      selectedStatus === "" || order.status === selectedStatus;
-
-    return matchSearch && matchStatus;
-  });
+      toast.error(error.response?.data?.message || "Update failed");
+    }
+  };
 
   return (
     <MainLayout>
@@ -97,7 +77,7 @@ const Orders = () => {
       <div className="flex flex-col md:flex-row gap-3 mb-5">
         <input
           type="text"
-          placeholder="Search order or customer..."
+          placeholder="Search customer..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full md:w-80 px-4 py-2 border rounded-lg"
@@ -119,7 +99,7 @@ const Orders = () => {
       </div>
 
       <OrderTable
-        orders={filteredOrders}
+        orders={orders}
         onView={setSelectedOrder}
         onUpdateStatus={updateStatus}
       />
