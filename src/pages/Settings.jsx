@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 
 import { getSettings, updateSettings } from "../api/settingsApi";
+import { useSettings } from "../context/SettingsContext";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
 
   const [logoPreview, setLogoPreview] = useState("");
+  const { refreshSettings } = useSettings();
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     cafeName: "",
@@ -43,8 +46,10 @@ const Settings = () => {
 
       if (settings.logo) {
         setLogoPreview(
-          `${import.meta.env.VITE_API_URL.replace("/api", "")}/${settings.logo}`,
+          `${import.meta.env.VITE_API_URL.replace("/api", "")}${settings.logo}`,
         );
+      } else {
+        setLogoPreview("");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load settings");
@@ -89,8 +94,25 @@ const Settings = () => {
 
       await updateSettings(data);
 
+      await refreshSettings();
+
       toast.success("Settings updated successfully");
 
+      // Clear selected file
+      setFormData((prev) => ({
+        ...prev,
+        logo: null,
+      }));
+
+      // Clear preview
+      setLogoPreview("");
+
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      // Reload latest settings
       fetchSettings();
     } catch (error) {
       toast.error(error.response?.data?.message || "Update failed");
@@ -204,16 +226,72 @@ const Settings = () => {
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Cafe Logo</label>
+          <label className="block mb-3 text-sm font-semibold text-gray-700">
+            Cafe Logo
+          </label>
 
-          <input type="file" accept="image/*" onChange={handleLogoChange} />
+          <label
+            htmlFor="logo-upload"
+            className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-blue-500 transition"
+          >
+            {logoPreview ? (
+              <img
+                src={logoPreview}
+                alt="Cafe Logo"
+                className="w-36 h-36 object-cover rounded-xl shadow-md"
+              />
+            ) : (
+              <>
+                <svg
+                  className="w-12 h-12 text-gray-400 mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M16 8l-4-4m0 0L8 8m4-4v12"
+                  />
+                </svg>
+
+                <p className="text-gray-600 font-medium">
+                  Click to upload logo
+                </p>
+
+                <p className="text-sm text-gray-400 mt-1">
+                  PNG, JPG, JPEG or WEBP (Max 2MB)
+                </p>
+              </>
+            )}
+          </label>
+
+          <input
+            ref={fileInputRef}
+            id="logo-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleLogoChange}
+            className="hidden"
+          />
 
           {logoPreview && (
-            <img
-              src={logoPreview}
-              alt="Logo"
-              className="mt-4 h-28 w-28 rounded-lg object-cover border"
-            />
+            <div className="flex justify-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setLogoPreview("");
+                  setFormData((prev) => ({
+                    ...prev,
+                    logo: null,
+                  }));
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
+              >
+                Remove Logo
+              </button>
+            </div>
           )}
         </div>
 

@@ -44,7 +44,7 @@ const Dashboard = () => {
           </div>
 
           <h2 className="mt-5 text-lg font-semibold text-gray-700">
-            Loading products...
+            Loading dashboard...
           </h2>
 
           <p className="text-sm text-gray-400 mt-1">Please wait a moment</p>

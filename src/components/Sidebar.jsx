@@ -12,9 +12,11 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const adminMenus = [
     {
       name: "Dashboard",
@@ -106,8 +108,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-700">
           <div className="flex items-center gap-2">
-            <FaCoffee size={28} />
-            <h1 className="text-xl font-bold">Coffee POS</h1>
+            {settings?.logo ? (
+              <img
+                src={`${import.meta.env.VITE_API_URL.replace("/api", "")}${settings?.logo}`}
+                alt="Logo"
+                className="w-9 h-9 rounded-full object-cover"
+              />
+            ) : (
+              <FaCoffee size={28} />
+            )}
+
+            <h1 className="text-xl font-bold">
+              {settings?.cafeName || "Coffee POS"}
+            </h1>
           </div>
 
           <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
