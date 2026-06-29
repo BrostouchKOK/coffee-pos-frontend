@@ -102,7 +102,13 @@ const Navbar = ({ setSidebarOpen }) => {
                 Profile
               </button>
 
-              <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-left">
+              <button
+                onClick={() => {
+                  navigate("/change-password");
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-left"
+              >
                 <FaKey />
                 Change Password
               </button>

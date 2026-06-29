@@ -15,3 +15,11 @@ export const getProfile = () => {
 export const updateProfile = (data) => {
   return API.put("/users/profile", data);
 };
+
+// ======================
+// Change Password
+// ======================
+
+export const changePassword = (data) => {
+  return API.put("/users/change-password", data);
+};

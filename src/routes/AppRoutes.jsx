@@ -10,6 +10,7 @@ import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
 import Login from "../pages/Login";
 import Profile from "../pages/Profile";
+import ChangePassword from "../pages/ChangePassword";
 
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "../context/AuthContext";
@@ -126,6 +127,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <ChangePassword />
             </ProtectedRoute>
           }
         />
