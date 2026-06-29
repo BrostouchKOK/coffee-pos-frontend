@@ -1,148 +1,225 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 
+import { getSettings, updateSettings } from "../api/settingsApi";
+
 const Settings = () => {
-  const [settings, setSettings] = useState({
-    storeName: "Coffee POS",
-    storeAddress: "Phnom Penh, Cambodia",
-    phone: "+855 12 345 678",
-    email: "coffeepos@gmail.com",
-    currency: "USD",
-    taxRate: "10",
-    receiptHeader: "Welcome to Coffee POS",
-    receiptFooter: "Thank you for your purchase!",
+  const [loading, setLoading] = useState(true);
+
+  const [logoPreview, setLogoPreview] = useState("");
+
+  const [formData, setFormData] = useState({
+    cafeName: "",
+    address: "",
+    phone: "",
+    email: "",
+    currency: "$",
+    tax: 0,
+    receiptFooter: "",
+    logo: null,
   });
 
-  const handleChange = (e) => {
-    setSettings({
-      ...settings,
-      [e.target.name]: e.target.value,
-    });
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await getSettings();
+
+      const settings = res.data.data;
+
+      setFormData({
+        cafeName: settings.cafeName || "",
+        address: settings.address || "",
+        phone: settings.phone || "",
+        email: settings.email || "",
+        currency: settings.currency || "$",
+        tax: settings.tax || 0,
+        receiptFooter: settings.receiptFooter || "",
+        logo: null,
+      });
+
+      if (settings.logo) {
+        setLogoPreview(
+          `${import.meta.env.VITE_API_URL.replace("/api", "")}/${settings.logo}`,
+        );
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load settings");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      logo: file,
+    }));
+
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    alert("Settings saved successfully!");
+    try {
+      const data = new FormData();
+
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== null) {
+          data.append(key, formData[key]);
+        }
+      });
+
+      await updateSettings(data);
+
+      toast.success("Settings updated successfully");
+
+      fetchSettings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Update failed");
+    }
   };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-96">
+          Loading Settings...
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <h1 className="text-2xl font-bold mb-6">
-        Settings
-      </h1>
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="bg-white rounded-xl shadow p-6 space-y-5"
       >
-        {/* Store Information */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4">
-            Store Information
-          </h2>
+        <div>
+          <label className="block mb-2 font-medium">Cafe Name</label>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="storeName"
-              placeholder="Store Name"
-              value={settings.storeName}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+          <input
+            type="text"
+            name="cafeName"
+            value={formData.cafeName}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2 font-medium">Address</label>
+
+          <textarea
+            rows="3"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div>
+            <label className="block mb-2 font-medium">Phone</label>
 
             <input
               type="text"
               name="phone"
-              placeholder="Phone Number"
-              value={settings.phone}
+              value={formData.phone}
               onChange={handleChange}
-              className="border p-3 rounded-lg"
+              className="w-full border rounded-lg p-3"
             />
+          </div>
+
+          <div>
+            <label className="block mb-2 font-medium">Email</label>
 
             <input
               type="email"
               name="email"
-              placeholder="Email"
-              value={settings.email}
+              value={formData.email}
               onChange={handleChange}
-              className="border p-3 rounded-lg"
+              className="w-full border rounded-lg p-3"
             />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div>
+            <label className="block mb-2 font-medium">Currency</label>
 
             <input
               type="text"
-              name="storeAddress"
-              placeholder="Store Address"
-              value={settings.storeAddress}
+              name="currency"
+              value={formData.currency}
               onChange={handleChange}
-              className="border p-3 rounded-lg"
+              className="w-full border rounded-lg p-3"
             />
           </div>
-        </div>
 
-        {/* System Settings */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4">
-            System Settings
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <select
-              name="currency"
-              value={settings.currency}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            >
-              <option value="USD">
-                USD ($)
-              </option>
-              <option value="KHR">
-                KHR (៛)
-              </option>
-            </select>
+          <div>
+            <label className="block mb-2 font-medium">Tax (%)</label>
 
             <input
               type="number"
-              name="taxRate"
-              placeholder="Tax Rate"
-              value={settings.taxRate}
+              name="tax"
+              value={formData.tax}
               onChange={handleChange}
-              className="border p-3 rounded-lg"
+              className="w-full border rounded-lg p-3"
             />
           </div>
         </div>
 
-        {/* Receipt Settings */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4">
-            Receipt Settings
-          </h2>
+        <div>
+          <label className="block mb-2 font-medium">Receipt Footer</label>
 
-          <div className="space-y-4">
-            <textarea
-              name="receiptHeader"
-              rows="3"
-              value={settings.receiptHeader}
-              onChange={handleChange}
-              className="w-full border p-3 rounded-lg"
-              placeholder="Receipt Header"
-            />
+          <textarea
+            rows="3"
+            name="receiptFooter"
+            value={formData.receiptFooter}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
 
-            <textarea
-              name="receiptFooter"
-              rows="3"
-              value={settings.receiptFooter}
-              onChange={handleChange}
-              className="w-full border p-3 rounded-lg"
-              placeholder="Receipt Footer"
+        <div>
+          <label className="block mb-2 font-medium">Cafe Logo</label>
+
+          <input type="file" accept="image/*" onChange={handleLogoChange} />
+
+          {logoPreview && (
+            <img
+              src={logoPreview}
+              alt="Logo"
+              className="mt-4 h-28 w-28 rounded-lg object-cover border"
             />
-          </div>
+          )}
         </div>
 
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
         >
           Save Settings
         </button>

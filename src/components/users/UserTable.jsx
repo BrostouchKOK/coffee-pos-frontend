@@ -16,7 +16,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
 
         <tbody>
           {users.map((user) => (
-            <tr key={user.id} className="border-b">
+            <tr key={user._id} className="border-b">
               <td className="p-4">{user.username}</td>
 
               <td className="p-4">{user.email}</td>
@@ -42,7 +42,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                 </button>
 
                 <button
-                  onClick={() => onDelete(user.id)}
+                  onClick={() => onDelete(user._id)}
                   className="bg-red-600 text-white px-3 py-1 rounded"
                 >
                   Delete

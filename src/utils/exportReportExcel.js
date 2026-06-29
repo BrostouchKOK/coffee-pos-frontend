@@ -26,7 +26,7 @@ const exportReportExcel = (orders, summary, startDate, endDate) => {
   ];
 
   const orderData = orders.map((order) => ({
-    OrderID: order.orderNumber,
+    OrderID: order._id.slice(-6),
     Cashier: order.cashier?.username || "-",
     Payment: order.paymentMethod,
     Total: order.totalAmount,

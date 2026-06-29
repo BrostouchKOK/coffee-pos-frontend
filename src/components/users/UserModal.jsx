@@ -1,32 +1,59 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 
 const UserModal = ({ isOpen, onClose, onSave, user }) => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
+    password: "",
     role: "Cashier",
   });
 
   useEffect(() => {
     if (user) {
-      setFormData(user);
+      setFormData({
+        username: user.username,
+        email: user.email,
+        password: "",
+        role: user.role,
+      });
     } else {
       setFormData({
         username: "",
         email: "",
+        password: "",
         role: "Cashier",
       });
     }
   }, [user]);
 
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.username || !formData.email) return;
+    if (!formData.username || !formData.email) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    if (!user && !formData.password) {
+      toast.error("Password is required.");
+      return;
+    }
+
+    if (!user && formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
 
     onSave(formData);
-    onClose();
   };
 
   return (
@@ -36,53 +63,82 @@ const UserModal = ({ isOpen, onClose, onSave, user }) => {
       title={user ? "Edit User" : "Add User"}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              username: e.target.value,
-            })
-          }
-          className="w-full border rounded-lg p-2"
-        />
+        {/* Username */}
+        <div>
+          <label className="block mb-1 font-medium">Username</label>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              email: e.target.value,
-            })
-          }
-          className="w-full border rounded-lg p-2"
-        />
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            placeholder="Enter username"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
 
-        <select
-          value={formData.role}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              role: e.target.value,
-            })
-          }
-          className="w-full border rounded-lg p-2"
-        >
-          <option value="Admin">Admin</option>
+        {/* Email */}
+        <div>
+          <label className="block mb-1 font-medium">Email</label>
 
-          <option value="Cashier">Cashier</option>
-        </select>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter email"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-lg"
-        >
-          Save User
-        </button>
+        {/* Password (Only Add User) */}
+        {!user && (
+          <div>
+            <label className="block mb-1 font-medium">Password</label>
+
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Minimum 6 characters"
+              className="w-full border rounded-lg px-3 py-2"
+            />
+          </div>
+        )}
+
+        {/* Role */}
+        <div>
+          <label className="block mb-1 font-medium">Role</label>
+
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2"
+          >
+            <option value="Admin">Admin</option>
+            <option value="Cashier">Cashier</option>
+          </select>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 pt-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 border rounded-lg hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            {user ? "Update User" : "Create User"}
+          </button>
+        </div>
       </form>
     </Modal>
   );
