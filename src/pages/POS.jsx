@@ -7,6 +7,7 @@ import { getProducts } from "../api/productApi";
 import { getCategories } from "../api/categoryApi";
 import { createOrder } from "../api/orderApi";
 import toast from "react-hot-toast";
+import { getSettings } from "../api/settingsApi";
 
 const POS = () => {
   const [products, setProducts] = useState([]);
@@ -22,6 +23,7 @@ const POS = () => {
 
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  const [settings, setSettings] = useState(null);
 
   // ======================
   // GET PRODUCTS
@@ -52,6 +54,18 @@ const POS = () => {
       setCategories(res.data.data);
     } catch (error) {
       toast.error("Failed to load categories");
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await getSettings();
+
+      setSettings(res.data.data);
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to load settings");
     }
   };
 
@@ -86,8 +100,8 @@ const POS = () => {
 
   useEffect(() => {
     fetchProducts();
-
     fetchCategories();
+    fetchSettings();
   }, []);
 
   // ======================
@@ -256,6 +270,7 @@ const POS = () => {
         isOpen={showReceipt}
         onClose={() => setShowReceipt(false)}
         order={receiptData}
+         settings={settings}
       />
     </MainLayout>
   );
