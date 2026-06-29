@@ -9,6 +9,7 @@ import Users from "../pages/Users";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
 import Login from "../pages/Login";
+import Profile from "../pages/Profile";
 
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "../context/AuthContext";
@@ -120,6 +121,14 @@ const AppRoutes = () => {
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Cashier"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
