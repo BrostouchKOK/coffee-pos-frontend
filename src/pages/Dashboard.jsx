@@ -5,8 +5,9 @@ import StatCard from "../components/dashboard/StatCard";
 import RecentOrders from "../components/dashboard/RecentOrders";
 import TopProducts from "../components/dashboard/TopProducts";
 import SalesChart from "../components/dashboard/SalesChart";
+import LowStockCard from "../components/dashboard/LowStockCard";
 
-import { getDashboardStats } from "../api/dashboardApi";
+import { getDashboardStats, getLowStockProducts } from "../api/dashboardApi";
 
 import toast from "react-hot-toast";
 
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [dashboard, setDashboard] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
 
   useEffect(() => {
     fetchDashboard();
@@ -21,9 +23,13 @@ const Dashboard = () => {
 
   const fetchDashboard = async () => {
     try {
-      const res = await getDashboardStats();
+      const [dashboardRes, lowStockRes] = await Promise.all([
+        getDashboardStats(),
+        getLowStockProducts(),
+      ]);
 
-      setDashboard(res.data.data);
+      setDashboard(dashboardRes.data.data);
+      setLowStockProducts(lowStockRes.data.data);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load dashboard");
     } finally {
@@ -78,10 +84,14 @@ const Dashboard = () => {
       </div>
 
       {/* Tables */}
-      <div className="grid lg:grid-cols-2 gap-5">
+      <div className="grid lg:grid-cols-2 gap-5 mb-5">
         <RecentOrders orders={dashboard.recentOrders} />
 
         <TopProducts products={dashboard.topProducts} />
+      </div>
+
+      <div className="mt-5">
+        <LowStockCard products={lowStockProducts} />
       </div>
     </MainLayout>
   );
