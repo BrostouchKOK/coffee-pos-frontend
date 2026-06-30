@@ -4,16 +4,13 @@ import { FaCoffee, FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import Loading from "../components/common/Loading";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const { login } = useAuth();
-
   const [loading, setLoading] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
-
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -47,6 +44,9 @@ const Login = () => {
       setLoading(false);
     }
   };
+  if (loading) {
+    return <Loading text={"Loading login..."} />;
+  }
 
   return (
     <div className="min-h-screen flex bg-gray-100">

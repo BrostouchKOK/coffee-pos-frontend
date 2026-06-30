@@ -4,12 +4,15 @@ import MainLayout from "../layouts/MainLayout";
 
 import { getSettings, updateSettings } from "../api/settingsApi";
 import { useSettings } from "../context/SettingsContext";
+import Loading from "../components/common/Loading";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
 
   const [logoPreview, setLogoPreview] = useState("");
+
   const { refreshSettings } = useSettings();
+
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -17,7 +20,8 @@ const Settings = () => {
     address: "",
     phone: "",
     email: "",
-    currency: "$",
+    currency: "USD",
+    exchangeRate: 4100,
     tax: 0,
     receiptFooter: "",
     logo: null,
@@ -38,9 +42,15 @@ const Settings = () => {
         address: settings.address || "",
         phone: settings.phone || "",
         email: settings.email || "",
-        currency: settings.currency || "$",
-        tax: settings.tax || 0,
+
+        currency: settings.currency || "USD",
+
+        exchangeRate: Number(settings.exchangeRate) || 4100,
+
+        tax: Number(settings.tax) || 0,
+
         receiptFooter: settings.receiptFooter || "",
+
         logo: null,
       });
 
@@ -59,11 +69,12 @@ const Settings = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+
+      [name]: type === "number" ? Number(value) : value,
     }));
   };
 
@@ -74,10 +85,19 @@ const Settings = () => {
 
     setFormData((prev) => ({
       ...prev,
+
       logo: file,
     }));
 
     setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleCurrencyChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+
+      currency: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -88,7 +108,13 @@ const Settings = () => {
 
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== null) {
-          data.append(key, formData[key]);
+          data.append(
+            key,
+
+            key === "exchangeRate" || key === "tax"
+              ? Number(formData[key])
+              : formData[key],
+          );
         }
       });
 
@@ -98,21 +124,6 @@ const Settings = () => {
 
       toast.success("Settings updated successfully");
 
-      // Clear selected file
-      setFormData((prev) => ({
-        ...prev,
-        logo: null,
-      }));
-
-      // Clear preview
-      setLogoPreview("");
-
-      // Clear file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      // Reload latest settings
       fetchSettings();
     } catch (error) {
       toast.error(error.response?.data?.message || "Update failed");
@@ -120,13 +131,7 @@ const Settings = () => {
   };
 
   if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-96">
-          Loading Settings...
-        </div>
-      </MainLayout>
-    );
+    return <Loading text="Loading settings..." />;
   }
 
   return (
@@ -191,26 +196,44 @@ const Settings = () => {
           <div>
             <label className="block mb-2 font-medium">Currency</label>
 
-            <input
-              type="text"
-              name="currency"
+            <select
               value={formData.currency}
-              onChange={handleChange}
+              onChange={handleCurrencyChange}
               className="w-full border rounded-lg p-3"
-            />
+            >
+              <option value="USD">USD ($)</option>
+
+              <option value="KHR">KHR (៛)</option>
+            </select>
           </div>
 
-          <div>
-            <label className="block mb-2 font-medium">Tax (%)</label>
+          {formData.currency === "KHR" && (
+            <div>
+              <label className="block mb-2 font-medium">Exchange Rate</label>
 
-            <input
-              type="number"
-              name="tax"
-              value={formData.tax}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            />
-          </div>
+              <input
+                type="number"
+                name="exchangeRate"
+                value={formData.exchangeRate}
+                onChange={handleChange}
+                className="w-full border rounded-lg p-3"
+              />
+
+              <p className="text-sm text-gray-500 mt-1">Example: 1$ = 4100៛</p>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block mb-2 font-medium">Tax (%)</label>
+
+          <input
+            type="number"
+            name="tax"
+            value={formData.tax}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
         </div>
 
         <div>
@@ -226,44 +249,20 @@ const Settings = () => {
         </div>
 
         <div>
-          <label className="block mb-3 text-sm font-semibold text-gray-700">
-            Cafe Logo
-          </label>
+          <label className="block mb-3 font-semibold">Cafe Logo</label>
 
           <label
             htmlFor="logo-upload"
-            className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-blue-500 transition"
+            className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed rounded-xl cursor-pointer"
           >
             {logoPreview ? (
               <img
                 src={logoPreview}
-                alt="Cafe Logo"
-                className="w-36 h-36 object-cover rounded-xl shadow-md"
+                alt="logo"
+                className="w-36 h-36 object-cover rounded-xl"
               />
             ) : (
-              <>
-                <svg
-                  className="w-12 h-12 text-gray-400 mb-3"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M16 8l-4-4m0 0L8 8m4-4v12"
-                  />
-                </svg>
-
-                <p className="text-gray-600 font-medium">
-                  Click to upload logo
-                </p>
-
-                <p className="text-sm text-gray-400 mt-1">
-                  PNG, JPG, JPEG or WEBP (Max 2MB)
-                </p>
-              </>
+              <p>Click to upload logo</p>
             )}
           </label>
 
@@ -275,29 +274,11 @@ const Settings = () => {
             onChange={handleLogoChange}
             className="hidden"
           />
-
-          {logoPreview && (
-            <div className="flex justify-center mt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setLogoPreview("");
-                  setFormData((prev) => ({
-                    ...prev,
-                    logo: null,
-                  }));
-                }}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
-              >
-                Remove Logo
-              </button>
-            </div>
-          )}
         </div>
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg"
         >
           Save Settings
         </button>

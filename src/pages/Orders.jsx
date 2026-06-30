@@ -5,16 +5,14 @@ import OrderDetailModal from "../components/orders/OrderDetailModal";
 import toast from "react-hot-toast";
 
 import { getOrders, updateOrderStatus } from "../api/orderApi";
+import Loading from "../components/common/Loading";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const statuses = ["Pending", "Completed", "Cancelled"];
-
   const [searchTerm, setSearchTerm] = useState("");
-
   const [selectedStatus, setSelectedStatus] = useState("");
-
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   // =========================
@@ -23,15 +21,18 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
+
       const res = await getOrders({
         search: searchTerm,
-
         status: selectedStatus,
       });
 
       setOrders(res.data.data);
     } catch (error) {
       toast.error("Cannot load orders");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,6 +66,10 @@ const Orders = () => {
       toast.error(error.response?.data?.message || "Update failed");
     }
   };
+
+  if (loading) {
+    return <Loading text={"Loading order..."} />;
+  }
 
   return (
     <MainLayout>
